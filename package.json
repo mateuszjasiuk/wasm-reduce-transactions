@@ -1,0 +1,15 @@
+{
+  "name": "wasm-reduce-transactions",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "type": "module",
+  "author": "Mateusz Jasiuk",
+  "license": "ISC",
+  "dependencies": {
+    "wasm-reduce-transactions": "file:pkg/"
+  }
+}
