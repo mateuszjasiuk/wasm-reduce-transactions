@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "build": "webpack --config webpack.config.js",
+    "start": "webpack-dev-server"
   },
   "type": "module",
   "author": "Mateusz Jasiuk",
