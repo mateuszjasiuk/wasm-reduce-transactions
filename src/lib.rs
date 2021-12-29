@@ -9,26 +9,30 @@ use std::fmt;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
+type Transactions = Vec<u8>;
+type From = u8;
+type Amount = i16;
+type To = u8;
+type CashFlow = (From, Amount, To);
+
+
 #[wasm_bindgen]
-pub struct Graph {
-    data: Vec<u8>,
+pub struct TransactionsGraph {
+    transactions: Transactions,
 }
 
-#[wasm_bindgen]
-pub struct TupleTransaction(pub u8, pub u8, pub i16);
-
-impl Graph {
-    fn min_cash_flow<'a>(&self, net: &'a mut Vec<i16>, transactions: &'a mut Vec<(u8, i16, u8)>) -> &'a mut Vec<(u8, i16, u8)> {
+impl TransactionsGraph {
+    fn min_cash_flow<'a>(&self, net: &'a mut Vec<i16>, transactions: &'a mut Vec<CashFlow>) -> &'a mut Vec<CashFlow> {
         let (min_index, min_value) = self.get_min(&net);
         let (max_index, max_value) = self.get_max(&net);
 
-        if net[min_index as usize] == 0 && net[max_index as usize] == 0 {
+        if net[usize::from(min_index)] == 0 && net[max_index as usize] == 0 {
             return transactions;
         }
 
         let min_of_2 = if -1 * min_value > max_value { max_value } else { -1 * min_value };
-        net[min_index as usize] += min_of_2;
-        net[max_index as usize] -= min_of_2;
+        net[usize::from(min_index)] += min_of_2;
+        net[usize::from(max_index)] -= min_of_2;
         transactions.push((min_index, min_of_2, max_index));
 
         return self.min_cash_flow(net, transactions);
@@ -36,22 +40,22 @@ impl Graph {
 
     fn net_amount(&self) -> Vec<i16> {
         let mut net: Vec<i16> = vec![];
-        let mut counter: usize = self.data[0] as usize;
+        let num_of_transactions = usize::from(self.transactions[0]);
+        let mut counter = usize::from(self.transactions[0]);
 
-        for _ in 1..=self.data[0] {
+        for _ in 0..num_of_transactions {
             net.push(0);
         }
 
-        for i in 0..self.data[0] {
+        for transaction_from in 0..num_of_transactions {
+            for transaction_to_index in 0..self.transactions[transaction_from + 1] {
+                let transaction_to = counter + usize::from(transaction_to_index) * 3 + 1;
 
-            for child in 0..self.data[i as usize + 1] {
-                let ii = counter + child as usize * 3 + 1;
-
-                let number = ((self.data[ii + 1] as i16) << 8) | self.data[ii + 2] as i16;
-                net[i as usize] -= number;
-                net[self.data[ii] as usize] += number;
+                let number = (i16::from(self.transactions[transaction_to + 1]) << 8) | i16::from(self.transactions[transaction_to + 2]);
+                net[transaction_from] -= number;
+                net[self.transactions[transaction_to] as usize] += number;
             }
-            counter = counter + self.data[i as usize + 1] as usize * 3;
+            counter = counter + usize::from(self.transactions[transaction_from + 1]) * 3;
         }
 
         return net;
@@ -59,37 +63,39 @@ impl Graph {
 
     fn get_min(&self, net: &Vec<i16>) -> (u8, i16) {
         let a = *net.iter().min().unwrap();
-        let i = net.iter().position(|&r| r == a).unwrap();
+        let i: usize = net.iter().position(|&r| r == a).unwrap();
+        // Unsafe kind of
         return (i as u8, a);
     }
 
     fn get_max(&self, net: &Vec<i16>) -> (u8, i16) {
         let a = *net.iter().max().unwrap();
         let i = net.iter().position(|&r| r == a).unwrap();
+        // Unsafe kind of
         return (i as u8, a);
     }
 }
 
 #[wasm_bindgen]
-impl Graph {
+impl TransactionsGraph {
     #[wasm_bindgen(constructor)]
-    pub fn new(number_of_nodes: u8) -> Graph {
-        let mut data: Vec<u8> = vec![];
+    pub fn new(number_of_nodes: u8) -> TransactionsGraph {
+        let mut transactions: Transactions = vec![];
         let mem_size = number_of_nodes;
 
-        data.push(number_of_nodes);
+        transactions.push(number_of_nodes);
 
         for _ in 0..mem_size {
-            data.push(0);
+            transactions.push(0);
         }
 
-        Graph { data }
+        TransactionsGraph { transactions }
     }
 
     pub fn add_edge(&mut self, u: u8, v: u8, wt: i16) {
-        self.data[(u + 1) as usize] += 1;
+        self.transactions[(u + 1) as usize] += 1;
         let [wt_1, wt_2] = wt.to_be_bytes();
-        self.data.extend_from_slice(&[v, wt_1, wt_2]);
+        self.transactions.extend_from_slice(&[v, wt_1, wt_2]);
     }
 
     pub fn render(&self) -> String {
@@ -112,9 +118,9 @@ impl Graph {
 }
 
 
-impl fmt::Display for Graph {
+impl fmt::Display for TransactionsGraph {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for byte in self.data.iter() {
+        for byte in self.transactions.iter() {
             write!(f, "[{}]", byte)?;
         }
 

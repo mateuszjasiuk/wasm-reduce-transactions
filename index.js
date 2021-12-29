@@ -1,4 +1,4 @@
-import {Graph} from "wasm-reduce-transactions";
+import {TransactionsGraph} from "wasm-reduce-transactions";
 
 function chunks (buffer, chunkSize) {
 	var result = [];
@@ -12,7 +12,7 @@ function chunks (buffer, chunkSize) {
 	return result;
 }
 
-const g = new Graph(3);
+const g = new TransactionsGraph(3);
 
 g.add_edge(0, 1, 3);
 g.add_edge(0, 2, 5);
