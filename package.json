@@ -8,7 +8,6 @@
     "build": "webpack --config webpack.config.js",
     "start": "webpack-dev-server"
   },
-  "type": "module",
   "author": "Mateusz Jasiuk",
   "license": "ISC",
   "dependencies": {

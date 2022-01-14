@@ -17,6 +17,22 @@ type Net = Vec<Cents>;
 type CashFlow = (From, Cents, To);
 
 const ZERO: i32 = 0;
+const MIN_NUMBER_OF_NODES: usize = 2;
+
+pub fn node_does_not_exist_err(node_id: &u8) -> JsValue {
+    JsValue::from(format!("Node with index {} does not exist. Make sure that the graph is initialized correctly.", node_id))
+}
+
+fn tx_to_string(tx: &[u8]) -> String {
+    let buf: [u8; 4] = [tx[1], tx[2], tx[3], tx[4]];
+    format!("{}: {} -> {}", tx[0], i32::from_ne_bytes(buf), tx[5])
+}
+
+pub fn transactions_to_strings(txs: Vec<u8>) -> Vec<String> {
+    txs.chunks(6).map(|tx| {
+        return tx_to_string(tx);
+    }).collect()
+}
 
 #[wasm_bindgen]
 pub struct TransactionsGraph {
@@ -40,7 +56,7 @@ impl TransactionsGraph {
 
         self.net[usize::from(min_index)] += min_of_2;
         self.net[usize::from(max_index)] -= min_of_2;
-        transactions.push((min_index, min_of_2, max_index));
+        transactions.push((max_index, min_of_2, min_index));
 
         return self.min_cash_flow(transactions);
     }
@@ -73,9 +89,14 @@ impl TransactionsGraph {
         TransactionsGraph { net }
     }
 
-    pub fn add_edge(&mut self, u: Index, v: Index, cents: Cents) {
+    pub fn add_edge(&mut self, u: Index, v: Index, cents: Cents) -> Result<(), JsValue> {
+        self.net.get(usize::from(u)).ok_or(node_does_not_exist_err(&u))?;
+        self.net.get(usize::from(v)).ok_or(node_does_not_exist_err(&v))?;
+
         self.net[usize::from(u)] += cents;
         self.net[usize::from(v)] -= cents;
+
+        Ok(())
     }
 
     pub fn render(&self) -> String {
@@ -83,11 +104,17 @@ impl TransactionsGraph {
     }
 
     pub fn reduce(&mut self) -> Vec<u8> {
-        let mut transactions = vec![];
-        let cash_flow = self.min_cash_flow(&mut transactions);
         let mut binary_transactions: Vec<u8> = vec![];
 
+        if self.net.len() < MIN_NUMBER_OF_NODES {
+            return binary_transactions;
+        }
+
+        let mut transactions = vec![];
+        let cash_flow = self.min_cash_flow(&mut transactions);
+
         for x in cash_flow.iter() {
+            //TODO: there is probably better way than to push here
             binary_transactions.push(x.0);
             binary_transactions.push(x.1 as u8);
             binary_transactions.push((x.1 >> 8) as u8);
