@@ -23,6 +23,10 @@ pub fn node_does_not_exist_err(node_id: &u8) -> JsValue {
     JsValue::from(format!("Node with index {} does not exist. Make sure that the graph is initialized correctly.", node_id))
 }
 
+pub fn constructor_param_is_not_a_number_err() -> JsValue {
+    JsValue::from(format!("Constructor param is not a number"))
+}
+
 fn tx_to_string(tx: &[u8]) -> String {
     let buf: [u8; 4] = [tx[1], tx[2], tx[3], tx[4]];
     format!("{}: {} -> {}", tx[0], i32::from_ne_bytes(buf), tx[5])
@@ -79,14 +83,22 @@ impl TransactionsGraph {
 #[wasm_bindgen]
 impl TransactionsGraph {
     #[wasm_bindgen(constructor)]
-    pub fn new(number_of_nodes: Index) -> TransactionsGraph {
+    pub fn new(js_number_of_nodes: JsValue) -> Result<TransactionsGraph, JsValue> {
         let mut net: Net = vec![];
+
+        let f64_number_of_nodes = js_number_of_nodes.as_f64().ok_or(constructor_param_is_not_a_number_err())?;
+        let mut number_of_nodes = std::u8::MAX;
+
+
+        if f64_number_of_nodes < number_of_nodes as f64 {
+            number_of_nodes = f64_number_of_nodes as u8;
+        }
 
         for _ in 0..number_of_nodes {
             net.push(ZERO);
         }
 
-        TransactionsGraph { net }
+        Ok(TransactionsGraph { net })
     }
 
     pub fn add_edge(&mut self, u: Index, v: Index, cents: Cents) -> Result<(), JsValue> {
@@ -140,3 +152,6 @@ impl fmt::Display for TransactionsGraph {
 
 //TODO:
 //write tests
+//move errors
+//move test helper functions
+//create JsValue layer so basic logic does not depend on it

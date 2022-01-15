@@ -12,32 +12,21 @@ function chunks (buffer, chunkSize) {
 	return result;
 }
 
-const g = new TransactionsGraph(1);
-
-// try {
-
-  g.add_edge(0, 1, 320);
-  g.add_edge(0, 2, 550);
-// } catch (e) {
-//   console.log(e);
-//   return;
-// }
+const g = new TransactionsGraph(4);
+g.add_edge(0, 2, 550);
+g.add_edge(1, 2, 200);
+g.add_edge(2, 3, 100);
+g.add_edge(3, 1, 300);
+g.add_edge(3, 0, 100);
 
 let a = g.reduce();
 
-console.log(a);
-
-// let dataview = new DataView(a.buffer);
-// let int32be = dataview.getInt32(0);
-
-// console.log(chunks(a.buffer, 4));
-
-// chunks(a.buffer, 6).forEach(buffer => {
-//   var dv = new DataView(buffer, 0);
-//   console.log("===")
-//   console.log("user:", dv.getInt8(5))
-//   var dv2 = new DataView(buffer, 1, 4);
-//   console.log("pays", dv2.getInt16(0, true))
-//   console.log("user:",dv.getInt8(0))
-// })
+chunks(a.buffer, 6).forEach(buffer => {
+  var dv = new DataView(buffer, 0);
+  console.log("===")
+  console.log("user:", dv.getInt8(0))
+  var dv2 = new DataView(buffer, 1, 4);
+  console.log("pays", dv2.getInt16(0, true))
+  console.log("user:",dv.getInt8(5))
+})
 
