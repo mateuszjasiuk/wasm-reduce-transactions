@@ -23,8 +23,8 @@ pub fn node_does_not_exist_err(node_id: &u8) -> JsValue {
     JsValue::from(format!("Node with index {} does not exist. Make sure that the graph is initialized correctly.", node_id))
 }
 
-pub fn constructor_param_is_not_a_number_err() -> JsValue {
-    JsValue::from(format!("Constructor param is not a number"))
+pub fn param_is_not_a_number_err() -> JsValue {
+    JsValue::from(format!("Provided param is not a number"))
 }
 
 fn tx_to_string(tx: &[u8]) -> String {
@@ -36,6 +36,17 @@ pub fn transactions_to_strings(txs: Vec<u8>) -> Vec<String> {
     txs.chunks(6).map(|tx| {
         return tx_to_string(tx);
     }).collect()
+}
+
+fn jsvalue_to_u8(val: JsValue) -> Result<u8, JsValue> {
+    let f64_val = val.as_f64().ok_or(param_is_not_a_number_err())?;
+    let mut val = std::u8::MAX;
+
+    if f64_val < val as f64 {
+        val = f64_val as u8;
+    }
+
+    Ok(val)
 }
 
 #[wasm_bindgen]
@@ -85,14 +96,7 @@ impl TransactionsGraph {
     #[wasm_bindgen(constructor)]
     pub fn new(js_number_of_nodes: JsValue) -> Result<TransactionsGraph, JsValue> {
         let mut net: Net = vec![];
-
-        let f64_number_of_nodes = js_number_of_nodes.as_f64().ok_or(constructor_param_is_not_a_number_err())?;
-        let mut number_of_nodes = std::u8::MAX;
-
-
-        if f64_number_of_nodes < number_of_nodes as f64 {
-            number_of_nodes = f64_number_of_nodes as u8;
-        }
+        let number_of_nodes = jsvalue_to_u8(js_number_of_nodes)?;
 
         for _ in 0..number_of_nodes {
             net.push(ZERO);
@@ -101,7 +105,10 @@ impl TransactionsGraph {
         Ok(TransactionsGraph { net })
     }
 
-    pub fn add_edge(&mut self, u: Index, v: Index, cents: Cents) -> Result<(), JsValue> {
+    pub fn add_edge(&mut self, u: JsValue, v: JsValue, cents: Cents) -> Result<(), JsValue> {
+        let u = jsvalue_to_u8(u)?;
+        let v = jsvalue_to_u8(v)?;
+
         self.net.get(usize::from(u)).ok_or(node_does_not_exist_err(&u))?;
         self.net.get(usize::from(v)).ok_or(node_does_not_exist_err(&v))?;
 

@@ -15,7 +15,7 @@ pub fn test_no_transactions_no_nodes() {
 #[wasm_bindgen_test]
 pub fn test_no_transactions_one_node() {
     let mut g = TransactionsGraph::new(JsValue::from(0)).unwrap();
-    let extra_edge = g.add_edge(0, 1, 30).unwrap_err();
+    let extra_edge = g.add_edge(JsValue::from(0), JsValue::from(1), 30).unwrap_err();
     let res = g.reduce();
 
     assert_eq!(*res, vec![]);
@@ -25,9 +25,9 @@ pub fn test_no_transactions_one_node() {
 #[wasm_bindgen_test]
 pub fn test_transaction_overflow_even_output() {
     let mut g = TransactionsGraph::new(JsValue::from(2)).unwrap();
-    g.add_edge(0, 1, 30).unwrap();
-    g.add_edge(1, 0, 30).unwrap();
-    let extra_edge = g.add_edge(0, 2, 30).unwrap_err();
+    g.add_edge(JsValue::from(0), JsValue::from(1), 30).unwrap();
+    g.add_edge(JsValue::from(1), JsValue::from(0), 30).unwrap();
+    let extra_edge = g.add_edge(JsValue::from(0), JsValue::from(2), 30).unwrap_err();
 
     let res = g.reduce();
 
@@ -38,9 +38,9 @@ pub fn test_transaction_overflow_even_output() {
 #[wasm_bindgen_test]
 pub fn test_transaction_overflow_uneven_output() {
     let mut g = TransactionsGraph::new(JsValue::from(2)).unwrap();
-    g.add_edge(0, 1, 30).unwrap();
-    g.add_edge(1, 0, 15).unwrap();
-    let extra_edge = g.add_edge(0, 2, 30).unwrap_err();
+    g.add_edge(JsValue::from(0), JsValue::from(1), 30).unwrap();
+    g.add_edge(JsValue::from(1), JsValue::from(0), 15).unwrap();
+    let extra_edge = g.add_edge(JsValue::from(0), JsValue::from(2), 30).unwrap_err();
 
     let res = g.reduce();
 
@@ -51,7 +51,7 @@ pub fn test_transaction_overflow_uneven_output() {
 #[wasm_bindgen_test]
 pub fn test_one_transaction() {
     let mut g = TransactionsGraph::new(JsValue::from(2)).unwrap();
-    g.add_edge(0, 1, 30).unwrap();
+    g.add_edge(JsValue::from(0), JsValue::from(1), 30).unwrap();
     let res = g.reduce();
 
     assert_eq!(transactions_to_strings(res), vec!["0: 30 -> 1"]);
@@ -60,8 +60,8 @@ pub fn test_one_transaction() {
 #[wasm_bindgen_test]
 pub fn test_two_transaction_to_two() {
     let mut g = TransactionsGraph::new(JsValue::from(3)).unwrap();
-    g.add_edge(0, 1, 30).unwrap();
-    g.add_edge(1, 2, 15).unwrap();
+    g.add_edge(JsValue::from(0), JsValue::from(1), 30).unwrap();
+    g.add_edge(JsValue::from(1), JsValue::from(2), 15).unwrap();
     let res = g.reduce();
 
     assert_eq!(transactions_to_strings(res), vec!["0: 15 -> 1", "0: 15 -> 2"]);
@@ -70,8 +70,8 @@ pub fn test_two_transaction_to_two() {
 #[wasm_bindgen_test]
 pub fn test_two_transaction_to_none() {
     let mut g = TransactionsGraph::new(JsValue::from(3)).unwrap();
-    g.add_edge(0, 1, 30).unwrap();
-    g.add_edge(1, 0, 30).unwrap();
+    g.add_edge(JsValue::from(0), JsValue::from(1), 30).unwrap();
+    g.add_edge(JsValue::from(1), JsValue::from(0), 30).unwrap();
     let res = g.reduce();
 
     assert_eq!(transactions_to_strings(res), vec![] as Vec<String>);
@@ -80,8 +80,8 @@ pub fn test_two_transaction_to_none() {
 #[wasm_bindgen_test]
 pub fn test_two_transaction_to_one() {
     let mut g = TransactionsGraph::new(JsValue::from(3)).unwrap();
-    g.add_edge(0, 1, 30).unwrap();
-    g.add_edge(1, 2, 30).unwrap();
+    g.add_edge(JsValue::from(0), JsValue::from(1), 30).unwrap();
+    g.add_edge(JsValue::from(1), JsValue::from(2), 30).unwrap();
     let res = g.reduce();
 
     assert_eq!(transactions_to_strings(res), vec!["0: 30 -> 2"]);
@@ -90,9 +90,9 @@ pub fn test_two_transaction_to_one() {
 #[wasm_bindgen_test]
 pub fn test_three_transaction_to_none() {
     let mut g = TransactionsGraph::new(JsValue::from(3)).unwrap();
-    g.add_edge(0, 1, 30).unwrap();
-    g.add_edge(1, 2, 30).unwrap();
-    g.add_edge(2, 0, 30).unwrap();
+    g.add_edge(JsValue::from(0), JsValue::from(1), 30).unwrap();
+    g.add_edge(JsValue::from(1), JsValue::from(2), 30).unwrap();
+    g.add_edge(JsValue::from(2), JsValue::from(0), 30).unwrap();
     let res = g.reduce();
 
     assert_eq!(transactions_to_strings(res), vec![] as Vec<String>);
