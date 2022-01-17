@@ -77,17 +77,17 @@ impl TransactionsGraph {
     }
 
     fn get_min(&self, net: &Net) -> (Index, Cents) {
-        let a = *net.iter().min().unwrap();
-        let i: usize = net.iter().position(|&r| r == a).unwrap();
+        let min = *net.iter().min().unwrap();
+        let i: usize = net.iter().position(|&p| p == min).unwrap();
         // Unsafe kind of
-        return (i as u8, a);
+        return (i as u8, min);
     }
 
     fn get_max(&self, net: &Net) -> (Index, Cents) {
-        let a = *net.iter().max().unwrap();
-        let i = net.iter().position(|&r| r == a).unwrap();
+        let max = *net.iter().max().unwrap();
+        let i = net.iter().position(|&p| p == max).unwrap();
         // Unsafe kind of
-        return (i as u8, a);
+        return (i as u8, max);
     }
 }
 
