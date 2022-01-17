@@ -19,12 +19,19 @@ type CashFlow = (From, Cents, To);
 const ZERO: i32 = 0;
 const MIN_NUMBER_OF_NODES: usize = 2;
 
+// 2147483647 / 100 / 255 = 84215.044980392
+const MAX_VAL_OF_TRANSACTION: i32 = 84215;
+
 pub fn node_does_not_exist_err(node_id: &u8) -> JsValue {
     JsValue::from(format!("Node with index {} does not exist. Make sure that the graph is initialized correctly.", node_id))
 }
 
 pub fn param_is_not_a_number_err() -> JsValue {
     JsValue::from(format!("Provided param is not a number"))
+}
+
+pub fn value_overflow_err(value_type: String, max_value: String) -> JsValue {
+    JsValue::from(format!("Type {} overflowed, max_value is {}", value_type, max_value))
 }
 
 fn tx_to_string(tx: &[u8]) -> String {
@@ -40,16 +47,26 @@ pub fn transactions_to_strings(txs: Vec<u8>) -> Vec<String> {
 
 fn jsvalue_to_u8(val: JsValue) -> Result<u8, JsValue> {
     let f64_val = val.as_f64().ok_or(param_is_not_a_number_err())?;
-    let mut val = std::u8::MAX;
 
-    if f64_val < val as f64 {
-        val = f64_val as u8;
+    if f64_val > std::u8::MAX as f64 {
+        return Err(JsValue::from(value_overflow_err("u8".to_owned(), std::u8::MAX.to_string())));
     }
 
-    Ok(val)
+    Ok(f64_val as u8)
+}
+
+fn jsvalue_to_i32(val: JsValue) -> Result<i32, JsValue> {
+    let f64_val = val.as_f64().ok_or(param_is_not_a_number_err())?;
+
+    if f64_val > MAX_VAL_OF_TRANSACTION as f64 {
+        return Err(JsValue::from(value_overflow_err("i32".to_owned(), MAX_VAL_OF_TRANSACTION.to_string())));
+    }
+
+    Ok(f64_val as i32)
 }
 
 #[wasm_bindgen]
+#[derive(Debug)]
 pub struct TransactionsGraph {
     net: Net,
 }
@@ -105,9 +122,10 @@ impl TransactionsGraph {
         Ok(TransactionsGraph { net })
     }
 
-    pub fn add_edge(&mut self, u: JsValue, v: JsValue, cents: Cents) -> Result<(), JsValue> {
+    pub fn add_edge(&mut self, u: JsValue, v: JsValue, cents: JsValue) -> Result<(), JsValue> {
         let u = jsvalue_to_u8(u)?;
         let v = jsvalue_to_u8(v)?;
+        let cents = jsvalue_to_i32(cents)?;
 
         self.net.get(usize::from(u)).ok_or(node_does_not_exist_err(&u))?;
         self.net.get(usize::from(v)).ok_or(node_does_not_exist_err(&v))?;
