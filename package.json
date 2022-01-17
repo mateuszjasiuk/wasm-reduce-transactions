@@ -3,13 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "test": "test",
-    "build": "webpack --config webpack.config.js",
-    "start": "webpack-dev-server"
-  },
   "author": "Mateusz Jasiuk",
   "license": "ISC",
+  "scripts": {
+    "start-node-example": "wasm-pack build --target nodejs && npm i && npm run start --prefix examples/node",
+    "start-web-example": "wasm-pack build && npm i && npm run start --prefix examples/web"
+  },
   "dependencies": {
     "wasm-reduce-transactions": "file:pkg/"
   }

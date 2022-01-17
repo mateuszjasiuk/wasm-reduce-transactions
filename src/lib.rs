@@ -176,7 +176,9 @@ impl fmt::Display for TransactionsGraph {
 }
 
 //TODO:
-//write tests
-//move errors
+//add examples
+//fix 84215 consts in tests
 //move test helper functions
+//move errors to enums?
+//====
 //create JsValue layer so basic logic does not depend on it

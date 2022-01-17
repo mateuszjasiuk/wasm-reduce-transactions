@@ -25,8 +25,7 @@ chunks(a.buffer, 6).forEach(buffer => {
   var dv = new DataView(buffer, 0);
   console.log("===")
   console.log("user:", dv.getInt8(0))
-  var dv2 = new DataView(buffer, 1, 4);
-  console.log("pays", dv2.getInt16(0, true))
+  console.log("pays", dv.getInt32(1, true))
   console.log("user:",dv.getInt8(5))
 })
 
