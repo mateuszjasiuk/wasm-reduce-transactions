@@ -4,12 +4,98 @@
     <meta charset="utf-8">
     <title>Wasm reduce transactions</title>
     <link rel="stylesheet" href="https://unpkg.com/terminal.css@0.7.2/dist/terminal.min.css" />
-
-    <!-- <script src="https://cdn.jsdelivr.net/gh/arcanus55/neodigm55@gh-pages/dist/neodigm55_v1_7.min.js"></script> -->
     <style>
+:root {
+    --global-font-size: 15px;
+    --global-line-height: 1.4em;
+    --font-stack: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica,
+    Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
+--background-color: #222225;
+--page-width: 60em;
+--font-color: #e8e9ed;
+--invert-font-color: #222225;
+--secondary-color: #a3abba;
+--tertiary-color: #a3abba;
+--primary-color: #62c4ff;
+--error-color: #ff3c74;
+--progress-bar-background: #3f3f44;
+--progress-bar-fill: #62c4ff;
+--code-bg-color: #3f3f44;
+--input-style: solid;
+--display-h1-decoration: none;
+}
+
+.tables {
+    display: flex;
+    flex-directon: col;
+}
     </style>
   </head>
-  <body>
+  <body class="terminal">
     <script src='./bootstrap.js'></script>
+    <div class="container">
+        <form id="tx-form">
+            <fieldset>
+                <legend>Tx</legend>
+                <div class="form-group">
+                    <label for="text">From</label>
+                    <input id="from" name="from" type="number" required="" placeholder="0" min="0" max="254">
+                </div>
+                <div class="form-group">
+                    <label for="text">To</label>
+                    <input id="to" name="to" type="number" required="" placeholder="0" min="0" max="254">
+                </div>
+                <div class="form-group">
+                    <label for="text">Amount</label>
+                    <input id="amount" name="amount" type="number" required="" placeholder="0" min="1" max="84215">
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-default" type="submit" role="button" name="submit" id="submit" onclick="">Add</button>
+                </div>
+            </fieldset>
+        </form>
+        <br />
+        <button id="reduce-btn" class="btn btn-primary btn-block">Reduce</button>
+        <section class="tables">
+            <table id="tx-table">
+                <caption>
+                    Txs
+                </caption>
+                <thead>
+                    <tr>
+                        <th>Who</th>
+                        <th>To</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th colspan="4">Before</th>
+                    </tr>
+                </tfoot>
+                <tbody>
+                </tbody>
+            </table>
+            <table id="reduced-tx-table">
+                <caption>
+                    Reduced Txs
+                </caption>
+                <thead>
+                    <tr>
+                        <th>Who</th>
+                        <th>To</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th colspan="4">After</th>
+                    </tr>
+                </tfoot>
+                <tbody>
+                </tbody>
+            </table>
+        </section>
+    </div>
   </body>
 </html>

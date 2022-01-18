@@ -164,7 +164,6 @@ impl TransactionsGraph {
     }
 }
 
-
 impl fmt::Display for TransactionsGraph {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for (i, wt) in self.net.iter().enumerate() {
@@ -176,7 +175,8 @@ impl fmt::Display for TransactionsGraph {
 }
 
 //TODO:
-//add examples
+// fix multiple user x to user y cash flow (money overflow issue)
+// fix user x to user x transactions
 //fix 84215 consts in tests
 //move test helper functions
 //move errors to enums?
