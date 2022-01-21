@@ -1,7 +1,15 @@
 mod utils;
-
 use wasm_bindgen::prelude::*;
 use std::fmt;
+
+extern crate web_sys;
+
+// A macro to provide `println!(..)`-style syntax for `console.log` logging.
+macro_rules! log {
+    ( $( $t:tt )* ) => {
+        web_sys::console::log_1(&format!( $( $t )* ).into());
+    }
+}
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -20,7 +28,7 @@ const ZERO: i32 = 0;
 const MIN_NUMBER_OF_NODES: usize = 2;
 
 // 2147483647 / 100 / 255 = 84215.044980392
-const MAX_VAL_OF_TRANSACTION: i32 = 84215;
+pub const MAX_VAL_OF_TRANSACTION: i32 = 8421500;
 
 pub fn node_does_not_exist_err(node_id: &u8) -> JsValue {
     JsValue::from(format!("Node with index {} does not exist. Make sure that the graph is initialized correctly.", node_id))
@@ -58,7 +66,7 @@ fn jsvalue_to_u8(val: JsValue) -> Result<u8, JsValue> {
 fn jsvalue_to_i32(val: JsValue) -> Result<i32, JsValue> {
     let f64_val = val.as_f64().ok_or(param_is_not_a_number_err())?;
 
-    if f64_val > MAX_VAL_OF_TRANSACTION as f64 {
+    if f64_val > std::i32::MAX as f64 {
         return Err(JsValue::from(value_overflow_err("i32".to_owned(), MAX_VAL_OF_TRANSACTION.to_string())));
     }
 
@@ -130,8 +138,15 @@ impl TransactionsGraph {
         self.net.get(usize::from(u)).ok_or(node_does_not_exist_err(&u))?;
         self.net.get(usize::from(v)).ok_or(node_does_not_exist_err(&v))?;
 
-        self.net[usize::from(u)] += cents;
-        self.net[usize::from(v)] -= cents;
+        match self.net[usize::from(u)].checked_add(cents) {
+            Some(val) => self.net[usize::from(u)] = val,
+            None => return Err(JsValue::from("Net overflow"))
+        }
+
+        match self.net[usize::from(v)].checked_sub(cents) {
+            Some(val) => self.net[usize::from(v)] = val,
+            None => return Err(JsValue::from("Net overflow"))
+        }
 
         Ok(())
     }
@@ -175,10 +190,11 @@ impl fmt::Display for TransactionsGraph {
 }
 
 //TODO:
-// fix multiple user x to user y cash flow (money overflow issue)
-// fix user x to user x transactions
-//fix 84215 consts in tests
+//fix warnings
+//some kind of prettier/formatter would be nice
+//255 in tests as u8 MAX
+//make web example better
 //move test helper functions
-//move errors to enums?
+//move errors to enums? and make them make sense
 //====
 //create JsValue layer so basic logic does not depend on it

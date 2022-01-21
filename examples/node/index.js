@@ -1,15 +1,15 @@
 const { TransactionsGraph } = require("wasm-reduce-transactions");
 
 function chunks (buffer, chunkSize) {
-	var result = [];
-	var len = buffer.byteLength;
-	var i = 0;
+  var result = [];
+  var len = buffer.byteLength;
+  var i = 0;
 
-	while (i < len) {
-		result.push(buffer.slice(i, i += chunkSize));
-	}
+  while (i < len) {
+    result.push(buffer.slice(i, i += chunkSize));
+  }
 
-	return result;
+  return result;
 }
 
 const g = new TransactionsGraph(4);

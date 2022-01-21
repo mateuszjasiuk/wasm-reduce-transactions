@@ -135,28 +135,41 @@ pub fn test_over_max_txs() {
 pub fn test_max_tx_val() {
     let mut g = TransactionsGraph::new(JsValue::from(2)).unwrap();
 
-    g.add_edge(JsValue::from(0), JsValue::from(1), JsValue::from(84215)).unwrap();
+    g.add_edge(JsValue::from(0), JsValue::from(1), JsValue::from(MAX_VAL_OF_TRANSACTION * 255)).unwrap();
     let res = g.reduce();
 
-    assert_eq!(transactions_to_strings(res), vec!["0: 84215 -> 1"]);
-}
-
-#[wasm_bindgen_test]
-pub fn test_over_max_tx_val() {
-    let mut g = TransactionsGraph::new(JsValue::from(2)).unwrap();
-
-    let overflowed_value = g.add_edge(JsValue::from(0), JsValue::from(1), JsValue::from(84216)).unwrap_err();
-
-    assert_eq!(overflowed_value, value_overflow_err("i32".to_owned(), 84215.to_string()));
+    assert_eq!(transactions_to_strings(res), vec!["0: 2147482500 -> 1"]);
 }
 
 #[wasm_bindgen_test]
 pub fn test_max_capacity() {
     let mut g = TransactionsGraph::new(JsValue::from(255)).unwrap();
     for x in 0..254 {
-        g.add_edge(JsValue::from(x), JsValue::from(x + 1), JsValue::from(84215)).unwrap();
+        g.add_edge(JsValue::from(x), JsValue::from(x + 1), JsValue::from(MAX_VAL_OF_TRANSACTION)).unwrap();
     }
     let res = g.reduce();
 
-    assert_eq!(transactions_to_strings(res), vec!["0: 84215 -> 254"]);
+    assert_eq!(transactions_to_strings(res), vec!["0: 8421500 -> 254"]);
+}
+
+#[wasm_bindgen_test]
+pub fn test_max_capacity_2() {
+    let mut g = TransactionsGraph::new(JsValue::from(2)).unwrap();
+    for _ in 0..255 {
+        g.add_edge(JsValue::from(0), JsValue::from(1), JsValue::from(MAX_VAL_OF_TRANSACTION)).unwrap();
+    }
+    let overflowed_value = g.add_edge(JsValue::from(0), JsValue::from(1), JsValue::from(MAX_VAL_OF_TRANSACTION)).unwrap_err();
+
+    assert_eq!(overflowed_value, "Net overflow");
+}
+
+#[wasm_bindgen_test]
+pub fn test_transacting_itself() {
+    let mut g = TransactionsGraph::new(JsValue::from(2)).unwrap();
+    g.add_edge(JsValue::from(0), JsValue::from(0), JsValue::from(10)).unwrap();
+    g.add_edge(JsValue::from(0), JsValue::from(0), JsValue::from(20)).unwrap();
+    g.add_edge(JsValue::from(1), JsValue::from(1), JsValue::from(40)).unwrap();
+    let res = g.reduce();
+
+    assert_eq!(transactions_to_strings(res), vec![] as Vec<String>);
 }
