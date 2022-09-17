@@ -2,7 +2,7 @@
 Hello,
 this is my "fun" project to learn a bit of rust.
 I've taken "minimize cash flow" algorithm from [geeks4geeks](https://www.geeksforgeeks.org/minimize-cash-flow-among-given-set-friends-borrowed-money/) and rewrote it in rust with wasm as compile target.
-It's functional but I do not guarantee it's correctness or performance in any way :)
+It works but I do not guarantee it's correctness or performance in any way :)
 
 ### Key points
 - I'm not a rust developer :D
